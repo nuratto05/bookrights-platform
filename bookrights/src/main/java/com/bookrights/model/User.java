@@ -2,11 +2,13 @@ package com.bookrights.model;
 
 import java.util.ArrayList;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 
 @Entity
 public class User {
@@ -15,29 +17,33 @@ public class User {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long userId;
 	
-	@Column(name="username", nullable=false)
+	@Column(name="username", nullable=false,unique = true)
 	private String username;
+	
+	@Column(name="password", nullable=false)
+	private String password;
 
 	@Column(name="name", nullable=false)
 	private String name;
 
-	@Column(name="email", nullable=false)
+	@Column(name="email", nullable=false, unique = true)
 	private String email;
 	
 	@Column(name="role", nullable=false)
 	private UserRole role;
 	
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
 	ArrayList<Book> book = new ArrayList<>();
 	
 	public User() {}
 
-	public User(Long userId, String username, String name, String email, UserRole role) {
-		super();
+	public User(String username, String name, String email, String password) {
 		this.userId = userId;
 		this.username = username;
 		this.name = name;
 		this.email = email;
-		this.role = role != null ? role : UserRole.BUYER;
+		this.password = password;
+		this.role = role != null ? role : UserRole.USER;
 	}
 
 	public Long getUserId() {
@@ -78,6 +84,14 @@ public class User {
 
 	public void setRole(UserRole role) {
 		this.role = role;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
 	}
 	
 	
