@@ -1,16 +1,25 @@
 package com.bookrights.dto;
 
+import com.bookrights.model.BookStatus;
+
+import jakarta.validation.constraints.NotBlank;
+
 public class CreateBookRequest {
 	
+	@NotBlank(message = "Book name cannot be empty")
 	private String bookName;
+	@NotBlank(message = "Author cannot be empty")
 	private String author;
+	@NotBlank(message = "ISBN cannot be empty")
 	private String isbn;
+	@NotBlank(message = "Category cannot be empty")
 	private String category;
-	private String status;
+	@NotBlank(message = "Price cannot be empty")
 	private double price;
+	@NotBlank(message = "IMG cannot be empty")
 	private String img;
 	
-	public CreateBookRequest(String bookName, String author, String isbn, String category, String status, double price, String img) {
+	public CreateBookRequest(String bookName, String author, String isbn, String category, double price, String img) {
 		super();
 		this.bookName = bookName;
 		this.author = author;
@@ -18,7 +27,6 @@ public class CreateBookRequest {
 		this.category = category;
 		this.price = price;
 		this.img = img;
-		this.status = status;
 	}
 
 	public String getBookName() {
@@ -68,14 +76,5 @@ public class CreateBookRequest {
 	public void setImg(String img) {
 		this.img = img;
 	}
-
-	public String getStatus() {
-		return status;
-	}
-
-	public void setStatus(String status) {
-		this.status = status;
-	}
-	
 	
 }

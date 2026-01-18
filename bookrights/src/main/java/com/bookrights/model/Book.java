@@ -22,7 +22,7 @@ public class Book {
 	private double price;
 	
 	@Column(name="status")
-	private String status;
+	private BookStatus status;
 	
 	@Column(name="category", nullable=false)
 	private String category;
@@ -36,7 +36,7 @@ public class Book {
 	
 	public Book() {}
 	
-	public Book( String author, String bookName, String isbn, double price, String status, String category, String img) {
+	public Book( String author, String bookName, String isbn, double price, BookStatus status, String category, String img) {
 		this.author = author;
 		this.bookName = bookName;
 		this.isbn = isbn;
@@ -94,11 +94,11 @@ public class Book {
 		this.price = price;
 	}
 
-	public String getStatus() {
+	public BookStatus getStatus() {
 		return status;
 	}
 
-	public void setStatus(String status) {
+	public void setStatus(BookStatus status) {
 		this.status = status;
 	}
 

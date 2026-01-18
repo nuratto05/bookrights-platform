@@ -13,6 +13,7 @@ import com.bookrights.dto.CreateBookRequest;
 import com.bookrights.dto.UpdateBookRequest;
 import com.bookrights.dto.BookResponse;
 import com.bookrights.model.Book;
+import com.bookrights.model.BookStatus;
 import com.bookrights.repository.BookRepository;
 
 @Service
@@ -46,29 +47,13 @@ public class BookService {
     }
     
     public BookResponse createBook(CreateBookRequest cbr) {
-    	
-		if (cbr.getAuthor() == null || cbr.getAuthor().isEmpty()) {
-			throw new IllegalArgumentException("Author is required");
-		}
-		if (cbr.getBookName() == null || cbr.getBookName().isEmpty()) {
-			throw new IllegalArgumentException("Book name is required");
-		}
-		if (cbr.getIsbn() == null || cbr.getIsbn().isEmpty()) {
-			throw new IllegalArgumentException("ISBN is required");
-		}
-		if (cbr.getPrice() <= 0) {
-			throw new IllegalArgumentException("Price is required and must be greater than 0");
-		}
-		if (cbr.getCategory() == null || cbr.getCategory().isEmpty()) {
-			throw new IllegalArgumentException("Category is required");
-		}
 
         Book newBook = new Book(
 				cbr.getAuthor(),
 		        cbr.getBookName(),
 		        cbr.getIsbn(),
 		        cbr.getPrice(),
-		        "AVAILABLE",
+		        BookStatus.AVAILABLE,
 		        cbr.getCategory(),
 		        cbr.getImg()
 				);
