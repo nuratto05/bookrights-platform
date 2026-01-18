@@ -2,13 +2,31 @@ package com.bookrights.model;
 
 import java.util.ArrayList;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
+@Entity
 public class User {
 	
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long userId;
+	
+	@Column(name="username", nullable=false)
 	private String username;
+
+	@Column(name="name", nullable=false)
 	private String name;
+
+	@Column(name="email", nullable=false)
 	private String email;
+	
+	@Column(name="role", nullable=false)
 	private UserRole role;
+	
 	ArrayList<Book> book = new ArrayList<>();
 	
 	public User() {}
