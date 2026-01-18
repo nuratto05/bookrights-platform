@@ -1,20 +1,26 @@
 package com.bookrights.model;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 @Entity
+@Table(name = "users")
 public class User {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id") 
 	private Long userId;
 	
 	@Column(name="username", nullable=false,unique = true)
@@ -29,16 +35,16 @@ public class User {
 	@Column(name="email", nullable=false, unique = true)
 	private String email;
 	
+	@Enumerated(EnumType.STRING)
 	@Column(name="role", nullable=false)
 	private UserRole role;
 	
-	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-	ArrayList<Book> book = new ArrayList<>();
+	@OneToMany(mappedBy = "owner", cascade = CascadeType.ALL)
+	private List<Book> books = new ArrayList<>();
 	
 	public User() {}
 
 	public User(String username, String name, String email, String password) {
-		this.userId = userId;
 		this.username = username;
 		this.name = name;
 		this.email = email;

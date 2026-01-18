@@ -9,6 +9,7 @@ import java.util.function.Function;
 import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import com.bookrights.model.User;
 
@@ -18,9 +19,11 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 
+
+@Component
 public class JwtUtil {
 
-	@Value("${jwt.secret}")
+	@Value("${secret.key}")
     private String secret;
 	
 	private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 10; // 10 hours

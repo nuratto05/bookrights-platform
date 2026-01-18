@@ -23,10 +23,11 @@ public class UserController {
 
 
 
-	@PostMapping("/login")
+	@GetMapping("/login")
     public ResponseEntity<String> login(@RequestBody LoginRequest request, HttpServletResponse response) {
 
-        String token = authService.login(request);
+        ResponseEntity<?> authResponse = authService.login(request);
+        String token = (String) authResponse.getBody();
         
         Cookie cookie = new Cookie("access_token", token);
         cookie.setHttpOnly(true);       // 🔒 JS cannot access
@@ -35,7 +36,7 @@ public class UserController {
         cookie.setMaxAge(60 * 60 * 10); // 10 hours
 
         response.addCookie(cookie);
-
+        System.out.println(token);
         return ResponseEntity.ok().body("Login Succesful");
     }
 	
