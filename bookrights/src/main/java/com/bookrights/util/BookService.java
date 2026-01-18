@@ -2,12 +2,16 @@ package com.bookrights.util;
 
 import java.util.Optional;
 
+import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.bookrights.dto.CreateBookRequest;
 import com.bookrights.dto.UpdateBookRequest;
+import com.bookrights.dto.BookResponse;
 import com.bookrights.model.Book;
 import com.bookrights.repository.BookRepository;
 
@@ -20,7 +24,7 @@ public class BookService {
 		this.bookRepo = bookRepository;
 	}
 
-    public Book updateBook(String isbn, UpdateBookRequest ubr) {
+    public BookResponse updateBook(String isbn, UpdateBookRequest ubr) {
         Book book = bookRepo.findByIsbn(isbn)
                 .orElseThrow(() -> new RuntimeException("Book not found"));
         
@@ -35,10 +39,13 @@ public class BookService {
         ubr.getCategory().ifPresent(book::setCategory);
         ubr.getImg().ifPresent(book::setImg);
 
-        return bookRepo.save(book);
+        bookRepo.save(book);
+
+        BookResponse bookResponse = new BookResponse(book);
+        return bookResponse;
     }
     
-    public Book createBook(CreateBookRequest cbr) {
+    public BookResponse createBook(CreateBookRequest cbr) {
     	
 		if (cbr.getAuthor() == null || cbr.getAuthor().isEmpty()) {
 			throw new IllegalArgumentException("Author is required");
@@ -65,8 +72,18 @@ public class BookService {
 		        cbr.getCategory(),
 		        cbr.getImg()
 				);
+        
+        bookRepo.save(newBook);
 
-        return bookRepo.save(newBook);
+        BookResponse bookResponse = new BookResponse(newBook);
+        return bookResponse;
     }
+    
+    public Page<BookResponse> getBooks(Pageable pageable) {
+        return bookRepo.findAllByStatus("AVAILABLE", pageable)
+                .map(BookResponse::new);
+    }
+
+
 	
 }

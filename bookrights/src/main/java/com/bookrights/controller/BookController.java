@@ -5,11 +5,14 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.bookrights.dto.BookResponse;
 import com.bookrights.dto.CreateBookRequest;
 import com.bookrights.dto.UpdateBookRequest;
 import com.bookrights.model.Book;
@@ -37,7 +40,7 @@ public class BookController {
 			return ResponseEntity.status(HttpStatus.CONFLICT).body("Book with ISBN exists");
 		}
 		
-		Book book = bookService.createBook(cbr);
+		BookResponse book = bookService.createBook(cbr);
 		return ResponseEntity.ok(book);
 	}
 
@@ -56,7 +59,7 @@ public class BookController {
 			return ResponseEntity.status(HttpStatus.CONFLICT).body("Book with ISBN does not exist");
 		}
 		
-		Book updatedBook = bookService.updateBook(isbn, ubr);
+		BookResponse updatedBook = bookService.updateBook(isbn, ubr);
 		
 		return ResponseEntity.ok(updatedBook);
 	}
@@ -83,14 +86,15 @@ public class BookController {
 	}
 	
 	// Get all available books
-	@GetMapping("/api/getBooks")
-	public ResponseEntity<List<Book>> getBooks() {
-		List<Book> books = bookRepo.findAllByStatus("AVAILABLE");
-		return ResponseEntity.ok(books);
+	@GetMapping("/api/books")
+	public ResponseEntity<Page<BookResponse>> getBooks(Pageable pageable) {
+	    Page<BookResponse> books = bookService.getBooks(pageable);
+	    
+	    return ResponseEntity.ok(books);
 	}
 	
 	//Get book detail
-	@GetMapping("/api/getBook/{isbn}")
+	@GetMapping("/api/book/{isbn}")
 	public ResponseEntity<?> getBook(@PathVariable String isbn){
 		
 		if (isbn == null || isbn.isBlank()) {
@@ -104,8 +108,9 @@ public class BookController {
 		}
 
 		Book book = bookOptional.get();
+		BookResponse brBook = new BookResponse(book);
 		
-		return ResponseEntity.ok(book);
+		return ResponseEntity.ok(brBook);
 		
 	}
 	
