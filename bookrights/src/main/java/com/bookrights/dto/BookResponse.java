@@ -1,6 +1,7 @@
 package com.bookrights.dto;
 
 import com.bookrights.model.Book;
+import com.bookrights.model.BookStatus;
 
 public class BookResponse {
 
@@ -8,7 +9,7 @@ public class BookResponse {
     private String author;
     private String isbn;
     private String category;
-    private String status;
+    private BookStatus status;
     private double price;
     private String img;
     private String sellerName;
@@ -21,7 +22,7 @@ public class BookResponse {
         this.status = book.getStatus();
         this.price = book.getPrice();
         this.img = book.getImg();
-        this.sellerName = "Nur";
+        this.sellerName = book.getOwner().getUsername();
     }
 	
 	public String getBookName() {
@@ -48,10 +49,10 @@ public class BookResponse {
 	public void setCategory(String category) {
 		this.category = category;
 	}
-	public String getStatus() {
+	public BookStatus getStatus() {
 		return status;
 	}
-	public void setStatus(String status) {
+	public void setStatus(BookStatus status) {
 		this.status = status;
 	}
 	public double getPrice() {

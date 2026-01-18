@@ -14,26 +14,41 @@ import com.bookrights.dto.UpdateBookRequest;
 import com.bookrights.dto.BookResponse;
 import com.bookrights.model.Book;
 import com.bookrights.model.BookStatus;
+import com.bookrights.model.User;
+import com.bookrights.model.UserRole;
 import com.bookrights.repository.BookRepository;
+import com.bookrights.repository.UserRepository;
 
 @Service
 public class BookService {
 
 	private BookRepository bookRepo;
+	private UserRepository userRepo;
 	
-	public BookService(BookRepository bookRepository) {
+	public BookService(BookRepository bookRepository, UserRepository userRepository) {
 		this.bookRepo = bookRepository;
+		this.userRepo = userRepository;
 	}
 
     public BookResponse updateBook(String isbn, UpdateBookRequest ubr) {
+    	
+    	
+    	User user = new User();
+    	user.setUserId((long)1);
+    	user.setUsername("testuser");
+    	user.setPassword("password123"); // will be encoded by your AuthService
+    	user.setName("Test User");
+    	user.setEmail("testuser@example.com");
+    	user.setRole(UserRole.USER);
+    	
+    	
+    	
         Book book = bookRepo.findByIsbn(isbn)
                 .orElseThrow(() -> new RuntimeException("Book not found"));
         
-        ubr.getPrice().ifPresent(price -> {
-            if (price <= 0) {
-                throw new IllegalArgumentException("Price must be greater than 0");
-            }
-        });
+        if(!book.getOwner().getUserId().equals(user.getUserId())) {
+        	throw new RuntimeException("You are not allowed to update this book");
+        }
 
         ubr.getBookName().ifPresent(book::setBookName);
         ubr.getPrice().ifPresent(book::setPrice);
@@ -47,15 +62,23 @@ public class BookService {
     }
     
     public BookResponse createBook(CreateBookRequest cbr) {
-
+    	
+    	User user = new User();
+    	user.setUserId((long) 1);
+    	user.setUsername("testuser");
+    	user.setPassword("password123"); // will be encoded by your AuthService
+    	user.setName("Test User");
+    	user.setEmail("testuser@example.com");
+    	user.setRole(UserRole.USER);
+    	
         Book newBook = new Book(
 				cbr.getAuthor(),
 		        cbr.getBookName(),
 		        cbr.getIsbn(),
 		        cbr.getPrice(),
-		        BookStatus.AVAILABLE,
 		        cbr.getCategory(),
-		        cbr.getImg()
+		        cbr.getImg(),
+		        user
 				);
         
         bookRepo.save(newBook);
@@ -68,6 +91,15 @@ public class BookService {
         return bookRepo.findAllByStatus("AVAILABLE", pageable)
                 .map(BookResponse::new);
     }
+    
+    public Book getBook(String isbn) {
+    	Book book = bookRepo.findByIsbn(isbn)
+                .orElseThrow(() -> new RuntimeException("Book not found"));
+
+		return book;
+    }
+    
+    
 
 
 	

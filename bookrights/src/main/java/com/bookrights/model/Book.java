@@ -3,6 +3,7 @@ package com.bookrights.model;
 import jakarta.persistence.*;
 
 @Entity
+@Table(name = "book")
 public class Book {
 	
 	@Id
@@ -21,6 +22,7 @@ public class Book {
 	@Column(name="price")
 	private double price;
 	
+	@Enumerated(EnumType.STRING)
 	@Column(name="status")
 	private BookStatus status;
 	
@@ -36,14 +38,15 @@ public class Book {
 	
 	public Book() {}
 	
-	public Book( String author, String bookName, String isbn, double price, BookStatus status, String category, String img) {
+	public Book( String author, String bookName, String isbn, double price, String category, String img, User owner) {
 		this.author = author;
 		this.bookName = bookName;
 		this.isbn = isbn;
 		this.price = price;
-		this.status = status;
+		this.status = BookStatus.AVAILABLE;
 		this.category = category;
 		this.img = img;
+		this.owner = owner;
 	}
 
 	public Long getId() {

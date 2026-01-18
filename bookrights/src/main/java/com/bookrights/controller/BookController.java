@@ -17,6 +17,7 @@ import com.bookrights.dto.CreateBookRequest;
 import com.bookrights.dto.UpdateBookRequest;
 import com.bookrights.model.Book;
 import com.bookrights.model.User;
+import com.bookrights.model.UserRole;
 import com.bookrights.repository.BookRepository;
 import com.bookrights.util.BookService;
 
@@ -53,12 +54,6 @@ public class BookController {
 	                             .body("ISBN cannot be null or empty");
 	    }
 		
-		Optional<Book> bookOptional = bookRepo.existsByIsbn(isbn);
-
-		if (!bookOptional.isPresent()) {
-			return ResponseEntity.status(HttpStatus.CONFLICT).body("Book with ISBN does not exist");
-		}
-		
 		BookResponse updatedBook = bookService.updateBook(isbn, ubr);
 		
 		return ResponseEntity.ok(updatedBook);
@@ -68,18 +63,27 @@ public class BookController {
 	@DeleteMapping("/api/deleteBook/{isbn}")
 	public ResponseEntity<?> deleteBook( @PathVariable String isbn) {
 		
+		User user = new User();
+    	user.setUserId((long)1);
+    	user.setUsername("testuser");
+    	user.setPassword("password123"); // will be encoded by your AuthService
+    	user.setName("Test User");
+    	user.setEmail("testuser@example.com");
+    	user.setRole(UserRole.USER);
+		
+		
+		
 		if (isbn == null || isbn.isBlank()) {
 	        return ResponseEntity.badRequest()
 	                             .body("ISBN cannot be null or empty");
 	    }
-
-		Optional<Book> bookOptional = bookRepo.findByIsbn(isbn);
-
-		if (bookOptional.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Book with ISBN does not exist or invalid data");
-		}
-
-		Book book = bookOptional.get();
+		
+		Book book = bookService.getBook(isbn);
+		
+		if(!book.getOwner().getUserId().equals(user.getUserId())) {
+        	throw new RuntimeException("You are not allowed to update this book");
+        }
+		
 		bookRepo.delete(book);
 		
 		return ResponseEntity.ok("Book Removed");
@@ -102,12 +106,7 @@ public class BookController {
 	                             .body("ISBN cannot be null or empty");
 	    }
 		
-		Optional<Book> bookOptional = bookRepo.findByIsbn(isbn);
-		if (bookOptional.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Book with ISBN does not exist or invalid data");
-		}
-
-		Book book = bookOptional.get();
+		Book book = bookService.getBook(isbn);
 		BookResponse brBook = new BookResponse(book);
 		
 		return ResponseEntity.ok(brBook);
