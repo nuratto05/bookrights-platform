@@ -29,7 +29,7 @@ public class SecurityConfig {
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/login", "/register").permitAll()
-                    .requestMatchers("/api/**").authenticated()
+                    .requestMatchers("/api/**", "/transaction/**").authenticated()
                     .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter,
