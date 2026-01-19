@@ -76,8 +76,23 @@ public class BookService {
         return bookResponse;
     }
     
+	public ResponseEntity<String> deleteBook(CustomUserDetails userDetails, String isbn) {
+		Book book = getBook(isbn);
+		
+		User user = userRepo.findById(userDetails.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+		if (!book.getOwner().getUserId().equals(user.getUserId())) {
+			throw new RuntimeException("You are not allowed to update this book");
+		}
+
+		bookRepo.delete(book);
+		
+		return ResponseEntity.ok("Book Removed");
+	}
+    
     public Page<BookResponse> getBooks(Pageable pageable) {
-        return bookRepo.findAllByStatus("AVAILABLE", pageable)
+        return bookRepo.findAllByStatus(BookStatus.AVAILABLE, pageable)
                 .map(BookResponse::new);
     }
     

@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.bookrights.model.Book;
+import com.bookrights.model.BookStatus;
 
 public interface BookRepository extends JpaRepository<Book, Long>{
 
@@ -15,7 +16,7 @@ public interface BookRepository extends JpaRepository<Book, Long>{
 
 	Optional<Book> findByIsbn(String isbn);
 
-	Page<Book> findAllByStatus(String string, Pageable pageable);
+	Page<Book> findAllByStatus(BookStatus available, Pageable pageable);
 
 	
 }

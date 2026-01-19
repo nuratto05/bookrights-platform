@@ -22,6 +22,7 @@ import com.bookrights.model.CustomUserDetails;
 import com.bookrights.model.User;
 import com.bookrights.model.UserRole;
 import com.bookrights.repository.BookRepository;
+import com.bookrights.repository.UserRepository;
 import com.bookrights.util.BookService;
 
 @RestController
@@ -29,10 +30,12 @@ public class BookController {
 
 	private final BookRepository bookRepo;
 	private BookService bookService;
+	private UserRepository userRepo;
 	
-	public BookController(BookRepository bookRepo, BookService bookService) {
+	public BookController(BookRepository bookRepo, BookService bookService, UserRepository userRepository) {
 		this.bookRepo = bookRepo;
 		this.bookService = bookService;
+		this.userRepo = userRepository;
 	}
 
 	// Create Book
@@ -67,37 +70,19 @@ public class BookController {
 
 	// Delete Book
 	@DeleteMapping("/api/deleteBook/{isbn}")
-	public ResponseEntity<?> deleteBook( @PathVariable String isbn) {
-		
-		User user = new User();
-    	user.setUserId((long)1);
-    	user.setUsername("testuser");
-    	user.setPassword("password123"); // will be encoded by your AuthService
-    	user.setName("Test User");
-    	user.setEmail("testuser@example.com");
-    	user.setRole(UserRole.USER);
-		
-		
+	public ResponseEntity<?> deleteBook(@AuthenticationPrincipal CustomUserDetails user, @PathVariable String isbn) {		
 		
 		if (isbn == null || isbn.isBlank()) {
 	        return ResponseEntity.badRequest()
 	                             .body("ISBN cannot be null or empty");
 	    }
 		
-		Book book = bookService.getBook(isbn);
-		
-		if(!book.getOwner().getUserId().equals(user.getUserId())) {
-        	throw new RuntimeException("You are not allowed to update this book");
-        }
-		
-		bookRepo.delete(book);
-		
-		return ResponseEntity.ok("Book Removed");
+		return bookService.deleteBook(user, isbn);
 	}
 	
 	// Get all available books
 	@GetMapping("/api/books")
-	public ResponseEntity<Page<BookResponse>> getBooks(Pageable pageable) {
+	public ResponseEntity<Page<BookResponse>> getBooks(@AuthenticationPrincipal CustomUserDetails user, Pageable pageable) {
 	    Page<BookResponse> books = bookService.getBooks(pageable);
 	    
 	    return ResponseEntity.ok(books);
@@ -105,12 +90,15 @@ public class BookController {
 	
 	//Get book detail
 	@GetMapping("/api/book/{isbn}")
-	public ResponseEntity<?> getBook(@PathVariable String isbn){
+	public ResponseEntity<?> getBook(@AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable String isbn){
 		
 		if (isbn == null || isbn.isBlank()) {
 	        return ResponseEntity.badRequest()
 	                             .body("ISBN cannot be null or empty");
 	    }
+		
+		User user = userRepo.findById(userDetails.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
 		
 		Book book = bookService.getBook(isbn);
 		BookResponse brBook = new BookResponse(book);
