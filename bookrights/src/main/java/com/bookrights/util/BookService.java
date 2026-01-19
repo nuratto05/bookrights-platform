@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import com.bookrights.dto.CreateBookRequest;
@@ -14,6 +15,7 @@ import com.bookrights.dto.UpdateBookRequest;
 import com.bookrights.dto.BookResponse;
 import com.bookrights.model.Book;
 import com.bookrights.model.BookStatus;
+import com.bookrights.model.CustomUserDetails;
 import com.bookrights.model.User;
 import com.bookrights.model.UserRole;
 import com.bookrights.repository.BookRepository;
@@ -30,21 +32,13 @@ public class BookService {
 		this.userRepo = userRepository;
 	}
 
-    public BookResponse updateBook(String isbn, UpdateBookRequest ubr) {
-    	
-    	
-    	User user = new User();
-    	user.setUserId((long)1);
-    	user.setUsername("testuser");
-    	user.setPassword("password123"); // will be encoded by your AuthService
-    	user.setName("Test User");
-    	user.setEmail("testuser@example.com");
-    	user.setRole(UserRole.USER);
-    	
-    	
+    public BookResponse updateBook(String isbn, UpdateBookRequest ubr, CustomUserDetails userDetails) {
     	
         Book book = bookRepo.findByIsbn(isbn)
                 .orElseThrow(() -> new RuntimeException("Book not found"));
+        
+        User user = userRepo.findById(userDetails.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
         
         if(!book.getOwner().getUserId().equals(user.getUserId())) {
         	throw new RuntimeException("You are not allowed to update this book");
@@ -61,15 +55,10 @@ public class BookService {
         return bookResponse;
     }
     
-    public BookResponse createBook(CreateBookRequest cbr) {
+    public BookResponse createBook(CreateBookRequest cbr, CustomUserDetails userDetails) {
     	
-    	User user = new User();
-    	user.setUserId((long) 1);
-    	user.setUsername("testuser");
-    	user.setPassword("password123"); // will be encoded by your AuthService
-    	user.setName("Test User");
-    	user.setEmail("testuser@example.com");
-    	user.setRole(UserRole.USER);
+    	User user = userRepo.findById(userDetails.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
     	
         Book newBook = new Book(
 				cbr.getAuthor(),

@@ -22,32 +22,17 @@ public class UpdateBookRequest {
 		return bookName;
 	}
 
-	public void setBookName(Optional<String> bookName) {
-		this.bookName = bookName;
-	}
-
 	public Optional<Double> getPrice() {
 		return price;
-	}
-
-	public void setPrice(Optional<Double> price) {
-		this.price = price;
 	}
 
 	public Optional<String> getCategory() {
 		return category;
 	}
 
-	public void setCategory(Optional<String> category) {
-		this.category = category;
-	}
-
 	public Optional<String> getImg() {
 		return img;
 	}
-
-	public void setImg(Optional<String> img) {
-		this.img = img;
-	}	
+	
 	
 }

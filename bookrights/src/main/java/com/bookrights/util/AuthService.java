@@ -4,6 +4,10 @@ import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.bookrights.dto.LoginRequest;
@@ -15,110 +19,90 @@ import com.bookrights.security.JwtUtil;
 @Service
 public class AuthService {
 
-	 private final UserRepository userRepo;
-//	    private final PasswordEncoder passwordEncoder;
-	 //		public AuthService(UserRepository userRepo, PasswordEncoder passwordEncoder, JwtUtil jwtService) {
-//			this.userRepo = userRepo;
-//			this.passwordEncoder = passwordEncoder;
-//			this.jwtService = jwtService;
-//		}
-	 
-	    private final JwtUtil jwtService;
-	    
-	    public AuthService(UserRepository userRepo, JwtUtil jwtService) {
-			this.userRepo = userRepo;
-			this.jwtService = jwtService;
+	private final UserRepository userRepo;
+	private final JwtUtil jwtService;
+	private final AuthenticationManager authenticationManager;
+	private final PasswordEncoder passwordEncoder;
+
+	public AuthService(UserRepository userRepo, JwtUtil jwtService, AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder) {
+		this.userRepo = userRepo;
+		this.jwtService = jwtService;
+		this.authenticationManager = authenticationManager;
+		this.passwordEncoder = passwordEncoder;
+		
+	}
+
+	public String login(LoginRequest request) {
+
+		// 1️⃣ Validate request
+		if (request == null) {
+			throw new IllegalArgumentException("Request body is missing");
 		}
-	    
-	    public ResponseEntity<?> login(LoginRequest request) {
 
-	        // 1️⃣ Validate request
-	        if (request == null) {
-	            return ResponseEntity.badRequest().body("Request body is missing");
-	        }
+		if (request.getUsername() == null || request.getUsername().isBlank()) {
+			throw new IllegalArgumentException("Username is required");
+		}
 
-	        if (request.getUsername() == null || request.getUsername().isBlank()) {
-	            return ResponseEntity.badRequest().body("Username is required");
-	        }
+		if (request.getPassword() == null || request.getPassword().isBlank()) {
+			throw new IllegalArgumentException("Password is required");
+		}
 
-	        if (request.getPassword() == null || request.getPassword().isBlank()) {
-	            return ResponseEntity.badRequest().body("Password is required");
-	        }
+		try {
 
-	        try {
-	            User user = userRepo.findByUsername(request.getUsername())
-	                    .orElseThrow(() -> new RuntimeException("Invalid username or password"));
+			authenticationManager.authenticate(
+					new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
 
-//	            if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-//	                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-//	                        .body("Invalid username or password");
-//	            }
-	            if (!request.getPassword().equals(user.getPassword())) {
-		            throw new RuntimeException("Invalid password");
-		        }
+			User user = userRepo.findByUsername(request.getUsername())
+					.orElseThrow(() -> new RuntimeException("Invalid username or password"));
 
-	            String token = jwtService.generateToken(user);
+			String token = jwtService.generateToken(user);
 
-	            return ResponseEntity.ok().body(token);
+			return token;
 
-	        } catch (RuntimeException e) {
-	            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
-	        }
-	    }
+		} catch (BadCredentialsException e) {
+			throw e;
+		} catch(Exception e) {
+			throw new RuntimeException("Login failed: " + e.getMessage(), e);
+		}
+	}
 
-	    
-	    public ResponseEntity<?> register(RegisterRequest request) {
-	    	
-	    	if (request == null) {
-	    	    return ResponseEntity.badRequest().body("Request body is missing");
-	    	}
+	public void register(RegisterRequest request) {
 
-	    	if (request.getUsername() == null || request.getUsername().isBlank()) {
-	    	    return ResponseEntity.badRequest().body("Username is required");
-	    	}
+		if (request == null) {
+			throw new IllegalArgumentException("Request body is missing");
+		}
 
-	    	if (request.getEmail() == null || request.getEmail().isBlank()) {
-	    	    return ResponseEntity.badRequest().body("Email is required");
-	    	}
+		if (request.getUsername() == null || request.getUsername().isBlank()) {
+			throw new IllegalArgumentException("Username is required");
+		}
 
-	    	if (request.getPassword() == null || request.getPassword().isBlank()) {
-	    	    return ResponseEntity.badRequest().body("Password is required");
-	    	}
+		if (request.getEmail() == null || request.getEmail().isBlank()) {
+			throw new IllegalArgumentException("Email is required");
+		}
 
-	    	if (request.getName() == null || request.getName().isBlank()) {
-	    	    return ResponseEntity.badRequest().body("Name is required");
-	    	}
+		if (request.getPassword() == null || request.getPassword().isBlank()) {
+			throw new IllegalArgumentException("Password is required");
+		}
 
-		    try {
-		    	// Check email
-		    	if (userRepo.findByEmail(request.getEmail()).isPresent()) {
-		    	    return ResponseEntity.status(HttpStatus.CONFLICT)
-		    	        .body("User with email already exists");
-		    	}
+		if (request.getName() == null || request.getName().isBlank()) {
+			throw new IllegalArgumentException("Name is required");
+		}
 
-		    	// Check username
-		    	if (userRepo.findByUsername(request.getUsername()).isPresent()) {
-		    	    return ResponseEntity.status(HttpStatus.CONFLICT)
-		    	        .body("Username already exists");
-		    	}
+		// Check email
+		if (userRepo.findByEmail(request.getEmail()).isPresent()) {
+			throw new IllegalArgumentException("User with email already exists");
+		}
 
-		    	
-		    	User user = new User(
-		    			request.getUsername(),
-		    			request.getName(),
-		    			request.getEmail(),
-		    			request.getPassword()
-		    			);
-		    	
-		    	userRepo.save(user);
+		// Check username
+		if (userRepo.findByUsername(request.getUsername()).isPresent()) {
+			throw new IllegalArgumentException("Username already exists");
+		}
 
-		        return ResponseEntity
-		                .status(HttpStatus.CREATED)
-		                .body("User registered successfully");
-		        
-		    } catch(Exception e) {
-		    	return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
-		    }
-	    }
-	
+		String hashedPassword = passwordEncoder.encode(request.getPassword());
+
+		User user = new User(request.getUsername(), request.getName(), request.getEmail(), hashedPassword);
+
+		userRepo.save(user);
+	}
+
 }
